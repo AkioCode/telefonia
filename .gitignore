@@ -24,4 +24,5 @@ telefonia-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
-assinantes.txt
+pos.txt
+pre.txt
