@@ -1,19 +1,24 @@
 defmodule Assinante do
   @moduledoc false
-  defstruct nome: nil, numero: nil, cpf: nil
+  defstruct nome: nil, numero: nil, cpf: nil, plano: nil
 
-  def cadastrar(nome, numero, cpf) do
-    [%__MODULE__{nome: nome, numero: numero, cpf: cpf} | ler() ]
+  @assinantes %{
+    pre_pago: "pre.txt",
+    pos_pago: "pos.txt"
+  }
+
+  def cadastrar(nome, numero, cpf, plano \\ :pre_pago) do
+    [%__MODULE__{nome: nome, numero: numero, cpf: cpf, plano: plano} | ler(@assinantes[plano]) ]
     |> :erlang.term_to_binary()
-    |> escrever()
+    |> escrever(@assinantes[plano])
   end
 
-  defp escrever(lista_assinantes) do
-    File.write!("assinantes.txt", lista_assinantes)
+  defp escrever(lista_assinantes, arquivo_plano) do
+    File.write!(arquivo_plano, lista_assinantes)
   end
 
-  defp ler() do
-    File.read!("assinantes.txt")
+  defp ler(arquivo_plano) do
+    File.read!(arquivo_plano)
     |> :erlang.binary_to_term
   end
 end
