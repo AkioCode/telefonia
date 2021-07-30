@@ -1,8 +1,18 @@
 defmodule TelefoniaTest do
+  @moduledoc false
   use ExUnit.Case
   doctest Telefonia
 
-  test "greets the world" do
-    assert Telefonia.hello() == :world
+  setup_all do
+    Telefonia.iniciar()
+
+    on_exit(fn ->
+      File.rm!("pos.txt")
+      File.rm!("pre.txt")
+    end)
+  end
+
+  test "cadastrar assinante" do
+    assert {:ok, message} = Telefonia.cadastrar_assinante("Rodrigo", "123", "123", :pre_pago)
   end
 end
