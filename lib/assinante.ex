@@ -46,9 +46,9 @@ defmodule Assinante do
   """
   def assinantes, do: ler("pre.txt") ++ ler("pos.txt")
 
-  defp filtro(lista, numero), do: Enum.find(lista, false, &(&1.numero == numero))
+  defp filtro(lista, numero), do: Enum.find(lista, {:error, "Assinante não encontrado"}, &(&1.numero == numero))
 
-  @spec buscar(binary(), :pos_pago | :pre_pago) :: false | %Assinante{}
+  @spec buscar(binary(), :pos_pago | :pre_pago) :: {:error, binary()} | %Assinante{}
 
   @doc """
   Busca assinante pelo número, especificando o tipo de plano ou não.
@@ -70,7 +70,7 @@ defmodule Assinante do
       %Assinante{}
 
       iex> Assinante.buscar("-1")
-      false
+      {:error, "Assinante não encontrado"}
   """
   def buscar(numero, :pre_pago), do: filtro(assinantes_pre(), numero)
   def buscar(numero, :pos_pago), do: filtro(assinantes_pos(), numero)
@@ -90,7 +90,7 @@ defmodule Assinante do
       %Assinante{}
 
       iex> Assinante.buscar("-1")
-      false
+      {:error, "Assinante não encontrado"}
   """
   def buscar(numero), do: filtro(assinantes(), numero)
 
@@ -118,7 +118,7 @@ defmodule Assinante do
   """
   def cadastrar(nome, numero, cpf, plano \\ :pre_pago) do
     case buscar(numero) do
-      false ->
+      {:error, _message} ->
         [%__MODULE__{nome: nome, numero: numero, cpf: cpf, plano: plano} | ler(@assinantes[plano]) ]
         |> :erlang.term_to_binary()
         |> escrever(@assinantes[plano])
@@ -137,5 +137,9 @@ defmodule Assinante do
   defp ler(arquivo_plano) do
     File.read!(arquivo_plano)
     |> :erlang.binary_to_term
+  end
+
+  def excluir(numero) do
+
   end
 end

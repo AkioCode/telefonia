@@ -74,4 +74,16 @@ defmodule AssinanteTest do
       assert false == Assinante.buscar("-1")
     end
   end
+
+  describe "excluir assinante " do
+    test "com sucesso" do
+      assinante = Assinante.cadastrar("Excluido", "123321", "123")
+      mensagem = "Assinante (#{assinante.numero}) excluído com sucesso"
+      assert Assinante.excluir(assinante.numero) == {:ok, mensagem}
+    end
+
+    test "com falha" do
+      assert Assinante.excluir("-1") == {:error, "Assinante não encontrado"}
+    end
+  end
 end
