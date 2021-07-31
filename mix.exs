@@ -14,7 +14,8 @@ defmodule Telefonia.MixProject do
       source_url: "https://github.com/AkioCode/telefonia",
       homepage_url: "https://github.com/AkioCode/telefonia",
       docs: [
-        main: "Telefonia", # The main page in the docs
+        # The main page in the docs
+        main: "Telefonia",
         extras: ["README.md"]
       ]
     ]

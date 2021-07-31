@@ -13,6 +13,6 @@ defmodule TelefoniaTest do
   end
 
   test "cadastrar assinante" do
-    assert {:ok, message} = Telefonia.cadastrar_assinante("Rodrigo", "123", "123", :pre_pago)
+    assert {:ok, _message} = Telefonia.cadastrar_assinante("Rodrigo", "123", "123", :pre_pago)
   end
 end
