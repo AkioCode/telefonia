@@ -26,3 +26,5 @@ telefonia-*.tar
 /tmp/
 pos.txt
 pre.txt
+pre_pago
+pos_pago
