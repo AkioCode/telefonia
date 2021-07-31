@@ -6,7 +6,7 @@ defmodule Assinante do
 
   Nota: é necessário executar `Telefonia.iniciar/0` antes de efetivar qualquer operação neste módulo.
   """
-  defstruct nome: nil, numero: nil, cpf: nil, plano: nil
+  defstruct nome: nil, numero: nil, cpf: nil, plano: nil, chamadas: []
 
   @assinantes %{
     pre_pago: "pre.txt",
@@ -46,7 +46,14 @@ defmodule Assinante do
   """
   def assinantes, do: ler("pre.txt") ++ ler("pos.txt")
 
-  defp filtro(lista, numero), do: Enum.find(lista, {:error, "Assinante não encontrado"}, &(&1.numero == numero))
+  defp filtro(lista, numero),
+    do: Enum.find(lista, {:error, "Assinante não encontrado"}, &(&1.numero == numero))
+
+  defp filtro(lista, numero, :indice) do
+    lista
+    |> Enum.with_index()
+    |> Enum.find({:error, "Assinante não encontrado"}, &(elem(&1, 0).numero == numero))
+  end
 
   @spec buscar(binary(), :pos_pago | :pre_pago) :: {:error, binary()} | %Assinante{}
 
@@ -73,6 +80,7 @@ defmodule Assinante do
       {:error, "Assinante não encontrado"}
   """
   def buscar(numero, :pre_pago), do: filtro(assinantes_pre(), numero)
+
   def buscar(numero, :pos_pago), do: filtro(assinantes_pos(), numero)
 
   @spec buscar(binary()) :: {:error, binary()} | %Assinante{}
@@ -94,7 +102,8 @@ defmodule Assinante do
   """
   def buscar(numero), do: filtro(assinantes(), numero)
 
-  @spec cadastrar(binary(), binary(), binary(), atom()) :: {:error, <<_::296>>} | {:ok, <<_::64, _::_*8>>}
+  defp buscar_com_indice(numero), do: filtro(assinantes(), numero, :indice)
+
   @doc """
   Cadastra assinante com número ainda não registrado nas fontes de dados.
 
@@ -116,12 +125,21 @@ defmodule Assinante do
       iex> Assinante.cadastrar("Rodrigo", "1234", "12345678910", :pre_pago)
       {:ok, "Assinante (1234 - pre_pago) cadastrado com sucesso"}
   """
-  def cadastrar(nome, numero, cpf, plano \\ :pre_pago) do
+  def cadastrar(nome, numero, cpf, :pos_pago), do: cadastrar(nome, numero, cpf, %Pospago{})
+
+  def cadastrar(nome, numero, cpf, :pre_pago), do: cadastrar(nome, numero, cpf, %Prepago{})
+
+  def cadastrar(nome, numero, cpf, estrutura_plano) do
+    plano = extrair_plano(estrutura_plano)
+
     case buscar(numero) do
       {:error, _message} ->
-        [%__MODULE__{nome: nome, numero: numero, cpf: cpf, plano: plano} | ler(@assinantes[plano]) ]
+        [
+          %__MODULE__{nome: nome, numero: numero, cpf: cpf, plano: estrutura_plano}
+          | ler(@assinantes[plano])
+        ]
         |> :erlang.term_to_binary()
-        |> escrever(@assinantes[plano])
+        |> escrever(estrutura_plano)
 
         {:ok, "Assinante (#{numero} - #{Atom.to_string(plano)}) cadastrado com sucesso"}
 
@@ -130,13 +148,22 @@ defmodule Assinante do
     end
   end
 
-  defp escrever(lista_assinantes, arquivo_plano) do
-    File.write!(arquivo_plano, lista_assinantes)
+  defp extrair_plano(estrutura_plano) do
+    case estrutura_plano.__struct__ do
+      Prepago -> :pre_pago
+      Pospago -> :pos_pago
+      _ -> {:error, "Plano inválido"}
+    end
+  end
+
+  defp escrever(lista_assinantes, estrutura_plano) do
+    @assinantes[extrair_plano(estrutura_plano)]
+    |> File.write!(lista_assinantes)
   end
 
   defp ler(arquivo_plano) do
     File.read!(arquivo_plano)
-    |> :erlang.binary_to_term
+    |> :erlang.binary_to_term()
   end
 
   def excluir(numero) do
@@ -144,13 +171,34 @@ defmodule Assinante do
     |> case do
       {:error, message} ->
         {:error, message}
+
       %Assinante{} = assinante ->
-        assinantes()
-        |> List.delete(assinante)
-        |> :erlang.term_to_binary()
-        |> escrever(@assinantes[assinante.plano])
+        assinante
+        |> filtrar_assinantes()
+        |> escrever(assinante)
 
         {:ok, "Assinante (#{assinante.numero}) excluído com sucesso"}
     end
   end
+
+  defp filtrar_assinantes(assinante) do
+    assinantes()
+    |> List.delete(assinante)
+    |> :erlang.term_to_binary()
+  end
+
+  def atualizar(numero, conteudo) do
+    buscar_com_indice(numero)
+    |> case do
+      {:error, message} ->
+        {:error, message}
+
+      {%Assinante{} = assinante, indice} ->
+        List.update_at(assinantes(), indice, &(Map.merge(&1, conteudo)))
+        |> :erlang.term_to_binary()
+        |> escrever(assinante)
+
+        {:ok, "Assinante atualizado com sucesso!"}
+      end
+    end
 end

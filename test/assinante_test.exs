@@ -4,7 +4,7 @@ defmodule AssinanteTest do
 
   setup_all do
     Telefonia.iniciar()
-    Assinante.cadastrar("Rodrigo", "123", "123")
+    Assinante.cadastrar("Rodrigo", "123", "123", :pre_pago)
     Assinante.cadastrar("Rodrigo", "121", "123", :pos_pago)
 
     ass_pre = Assinante.buscar("123")
@@ -20,14 +20,15 @@ defmodule AssinanteTest do
 
   describe "estrutura " do
     test "@assinantes" do
-      assert %Assinante{nome: "teste", numero: "teste", cpf: "nil", plano: :pre_pago}.nome == "teste"
+      assert %Assinante{nome: "teste", numero: "teste", cpf: "nil", plano: :pre_pago}.nome ==
+               "teste"
     end
   end
 
   describe "cadastro " do
     test "válido conta pre-paga" do
       message = "Assinante (1234 - pre_pago) cadastrado com sucesso"
-      assert Assinante.cadastrar("Rodrigo", "1234", "123") == {:ok, message}
+      assert Assinante.cadastrar("Rodrigo", "1234", "123", :pre_pago) == {:ok, message}
     end
 
     test "valido conta pos-paga" do
@@ -36,7 +37,8 @@ defmodule AssinanteTest do
     end
 
     test "inválido número existente" do
-      assert Assinante.cadastrar("Rodrigo", "121", "121") == {:error, "Já existe assinante com este número"}
+      assert Assinante.cadastrar("Rodrigo", "121", "121", :pre_pago) ==
+               {:error, "Já existe assinante com este número"}
     end
   end
 
@@ -63,12 +65,15 @@ defmodule AssinanteTest do
     test "pré-pago", %{ass_pre: ass} do
       assert ass == Assinante.buscar(ass.numero, :pre_pago)
     end
+
     test "pos-pago", %{ass_pos: ass} do
       assert ass == Assinante.buscar(ass.numero, :pos_pago)
     end
+
     test "geral", %{ass_pos: ass} do
       assert ass == Assinante.buscar(ass.numero)
     end
+
     test "inexistente" do
       assert {:error, "Assinante não encontrado"} == Assinante.buscar("-1")
     end
@@ -76,7 +81,7 @@ defmodule AssinanteTest do
 
   describe "excluir assinante " do
     test "com sucesso" do
-      Assinante.cadastrar("Excluido", "123321", "123")
+      Assinante.cadastrar("Excluido", "123321", "123", :pre_pago)
       assinante = Assinante.buscar("123321")
 
       mensagem = "Assinante (#{assinante.numero}) excluído com sucesso"
@@ -85,6 +90,16 @@ defmodule AssinanteTest do
 
     test "com falha" do
       assert Assinante.excluir("-1") == {:error, "Assinante não encontrado"}
+    end
+  end
+
+  describe "atualizar assinante " do
+    test "com sucesso", %{ass_pre: assinante} do
+      assert Assinante.atualizar(assinante.numero, %{nome: "Akio"}) == {:ok, "Assinante atualizado com sucesso!"}
+    end
+
+    test "com falha" do
+      assert Assinante.atualizar("-1", %{nome: "Akio"}) == {:error, "Assinante não encontrado"}
     end
   end
 end
