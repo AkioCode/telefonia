@@ -1,7 +1,6 @@
 defmodule AssinanteTest do
   @moduledoc false
   use ExUnit.Case
-  doctest Assinante
 
   setup_all do
     Telefonia.iniciar()
@@ -71,13 +70,15 @@ defmodule AssinanteTest do
       assert ass == Assinante.buscar(ass.numero)
     end
     test "inexistente" do
-      assert false == Assinante.buscar("-1")
+      assert {:error, "Assinante não encontrado"} == Assinante.buscar("-1")
     end
   end
 
   describe "excluir assinante " do
     test "com sucesso" do
-      assinante = Assinante.cadastrar("Excluido", "123321", "123")
+      Assinante.cadastrar("Excluido", "123321", "123")
+      assinante = Assinante.buscar("123321")
+
       mensagem = "Assinante (#{assinante.numero}) excluído com sucesso"
       assert Assinante.excluir(assinante.numero) == {:ok, mensagem}
     end

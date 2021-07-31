@@ -75,7 +75,7 @@ defmodule Assinante do
   def buscar(numero, :pre_pago), do: filtro(assinantes_pre(), numero)
   def buscar(numero, :pos_pago), do: filtro(assinantes_pos(), numero)
 
-  @spec buscar(binary()) :: false | %Assinante{}
+  @spec buscar(binary()) :: {:error, binary()} | %Assinante{}
 
   @doc """
   Busca assinante pelo número em todos planos.
@@ -140,6 +140,17 @@ defmodule Assinante do
   end
 
   def excluir(numero) do
+    buscar(numero)
+    |> case do
+      {:error, message} ->
+        {:error, message}
+      %Assinante{} = assinante ->
+        assinantes()
+        |> List.delete(assinante)
+        |> :erlang.term_to_binary()
+        |> escrever(@assinantes[assinante.plano])
 
+        {:ok, "Assinante (#{assinante.numero}) excluído com sucesso"}
+    end
   end
 end
