@@ -148,7 +148,7 @@ defmodule Assinante do
     end
   end
 
-  defp extrair_plano(estrutura_plano) do
+  def extrair_plano(estrutura_plano) do
     case estrutura_plano.__struct__ do
       Prepago -> :pre_pago
       Pospago -> :pos_pago
@@ -175,7 +175,7 @@ defmodule Assinante do
       %Assinante{} = assinante ->
         assinante
         |> filtrar_assinantes()
-        |> escrever(assinante)
+        |> escrever(assinante.plano)
 
         {:ok, "Assinante (#{assinante.numero}) excluído com sucesso"}
     end
@@ -196,7 +196,7 @@ defmodule Assinante do
       {%Assinante{} = assinante, indice} ->
         List.update_at(assinantes(), indice, &(Map.merge(&1, conteudo)))
         |> :erlang.term_to_binary()
-        |> escrever(assinante)
+        |> escrever(assinante.plano)
 
         {:ok, "Assinante atualizado com sucesso!"}
       end

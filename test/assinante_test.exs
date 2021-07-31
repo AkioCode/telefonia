@@ -94,7 +94,9 @@ defmodule AssinanteTest do
   end
 
   describe "atualizar assinante " do
-    test "com sucesso", %{ass_pre: assinante} do
+    test "com sucesso" do
+      Assinante.cadastrar("Rodrigo", "9", "9", :pre_pago)
+      assinante = Assinante.buscar("9", :pre_pago)
       assert Assinante.atualizar(assinante.numero, %{nome: "Akio"}) == {:ok, "Assinante atualizado com sucesso!"}
     end
 
