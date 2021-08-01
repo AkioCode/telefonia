@@ -33,10 +33,13 @@ defmodule Prepago do
     mes = data.month
     ano = data.year
 
-    recargas_mes = Enum.filter(assinante.plano.recargas, &(&1.data.month == mes and &1.data.year == ano))
-    creditos_total = Enum.reduce(recargas_mes, 0, fn r, acc -> acc + r.creditos end)
-    chamadas_mes = Enum.filter(assinante.chamadas, &(&1.data.month == mes and &1.data.year == ano))
+      recargas_mes = filtrar_mes_ano(assinante.plano.recargas, mes, ano)
+      chamadas_mes = filtrar_mes_ano(assinante.chamadas, mes, ano)
+      creditos_total = Enum.reduce(recargas_mes, 0, fn r, acc -> acc + r.creditos end)
+      assinante_extrato = %Assinante{assinante | plano: %Prepago{recargas: recargas_mes, saldo: creditos_total}, chamadas: chamadas_mes}
 
     {:ok, %{numero: assinante.numero, recargas: recargas_mes, creditos: creditos_total,  chamadas: chamadas_mes}}
   end
+
+  defp filtrar_mes_ano(lista, mes, ano), do: Enum.filter(lista, &(&1.data.month == mes and &1.data.year == ano))
 end
