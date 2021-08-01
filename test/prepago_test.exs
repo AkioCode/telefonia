@@ -4,18 +4,18 @@ defmodule PrepagoTest do
 
   setup_all do
     Telefonia.iniciar()
+    Assinante.cadastrar("Rodrigo", "121", "123", :pre_pago)
+    Assinante.cadastrar("Rodrigo", "122", "123", :pre_pago)
     Assinante.cadastrar("Rodrigo", "123", "123", :pre_pago)
-    Assinante.cadastrar("Rodrigo", "121", "123", :pos_pago)
 
-    ass_pre = Assinante.buscar("123")
-    ass_pos = Assinante.buscar("121")
+    assinantes = Assinante.assinantes_pre()
 
     on_exit(fn ->
       File.rm!("pos.txt")
       File.rm!("pre.txt")
     end)
 
-    %{ass_pre: ass_pre, ass_pos: ass_pos}
+    %{assinantes: assinantes}
   end
 
   test "estrutura Prepago" do
@@ -23,14 +23,45 @@ defmodule PrepagoTest do
   end
 
   describe "ligação " do
-    test "com saldo suficiente" do
-      assert Prepago.ligar("123", DateTime.utc_now(), 3) ==
+    test "com saldo suficiente", %{assinantes: assinantes} do
+      assinante = Enum.at(assinantes, 0)
+      assert Prepago.ligar(assinante.numero, DateTime.utc_now(), 3) ==
                {:ok, "Custo da chamada: 4.35. Saldo atual: 5.65"}
     end
 
-    test "sem saldo suficiente" do
-      assert Prepago.ligar("123", DateTime.utc_now(), 11) ==
+    test "sem saldo suficiente", %{assinantes: assinantes} do
+      assinante = Enum.at(assinantes, 0)
+      assert Prepago.ligar(assinante.numero, DateTime.utc_now(), 11) ==
                {:error, "Você não tem saldo suficiente, que pena! 😈"}
+    end
+  end
+
+  describe "impressão de contas " do
+    test "válida", %{assinantes: assinantes} do
+      fst_data = DateTime.utc_now()
+      assinante_1 = Enum.at(assinantes, 1)
+      Recarga.registrar(fst_data, 10, assinante_1.numero)
+      Prepago.ligar(assinante_1.numero, fst_data, 1)
+      days_in_month = Date.days_in_month(fst_data)
+      {:ok, assinante_1_extrato} = Prepago.gerar_extrato(fst_data, assinante_1.numero)
+
+      assert assinante_1_extrato.numero == assinante_1.numero
+      assert Enum.count(assinante_1_extrato.chamadas) == 1
+      assert Enum.count(assinante_1_extrato.recargas) == 1
+      assert assinante_1_extrato.creditos == 10
+
+      scd_data = DateTime.add(fst_data, 86_400 * days_in_month, :second)
+      assinante_2 = Enum.at(assinantes, 1)
+      Recarga.registrar(scd_data, 20, assinante_2.numero)
+      Prepago.ligar(assinante_2.numero, scd_data, 3)
+      Prepago.ligar(assinante_2.numero, scd_data, 6)
+
+      {:ok, assinante_2_extrato} = Prepago.gerar_extrato(scd_data, assinante_2.numero)
+
+      assert assinante_2_extrato.numero == assinante_2.numero
+      assert Enum.count(assinante_2_extrato.chamadas) == 2
+      assert Enum.count(assinante_2_extrato.recargas) == 1
+      assert assinante_2_extrato.creditos == 20
     end
   end
 end

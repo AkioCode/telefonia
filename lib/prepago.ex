@@ -27,4 +27,16 @@ defmodule Prepago do
   defp calcular_custo(duracao), do: duracao * @preco_minuto
 
   defp descontar(saldo, custo), do: saldo - custo
+
+  def gerar_extrato(data, numero) do
+    assinante = Assinante.buscar(numero, :pre_pago)
+    mes = data.month
+    ano = data.year
+
+    recargas_mes = Enum.filter(assinante.plano.recargas, &(&1.data.month == mes and &1.data.year == ano))
+    creditos_total = Enum.reduce(recargas_mes, 0, fn r, acc -> acc + r.creditos end)
+    chamadas_mes = Enum.filter(assinante.chamadas, &(&1.data.month == mes and &1.data.year == ano))
+
+    {:ok, %{numero: assinante.numero, recargas: recargas_mes, creditos: creditos_total,  chamadas: chamadas_mes}}
+  end
 end
