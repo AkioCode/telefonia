@@ -25,5 +25,11 @@ defmodule ChamadaTest do
       assert Chamada.registrar(ass_pre, horario, 3) ==
                {:ok, "Número: #{ass_pre.numero} | Data/Hora: #{horario} | Duração: 3"}
     end
+    test "inválida" do
+      horario = DateTime.utc_now()
+
+      assert Chamada.registrar(%Assinante{}, horario, 3) ==
+               {:error, "Assinante não encontrado"}
+    end
   end
 end
