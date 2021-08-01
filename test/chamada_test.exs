@@ -18,6 +18,10 @@ defmodule ChamadaTest do
     %{ass_pre: ass_pre, ass_pos: ass_pos}
   end
 
+  test "estrutura Chamada" do
+    assert %Chamada{data: DateTime.utc_now(), duracao: 10}.duracao == 10
+  end
+
   describe "registro de chamada " do
     test "válida", %{ass_pre: ass_pre} do
       horario = DateTime.utc_now()
@@ -25,6 +29,7 @@ defmodule ChamadaTest do
       assert Chamada.registrar(ass_pre, horario, 3) ==
                {:ok, "Número: #{ass_pre.numero} | Data/Hora: #{horario} | Duração: 3"}
     end
+
     test "inválida" do
       horario = DateTime.utc_now()
 

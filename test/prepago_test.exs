@@ -18,6 +18,10 @@ defmodule PrepagoTest do
     %{ass_pre: ass_pre, ass_pos: ass_pos}
   end
 
+  test "estrutura Prepago" do
+    assert %Prepago{saldo: 10, recargas: []}.saldo == 10
+  end
+
   describe "ligação " do
     test "com saldo suficiente" do
       assert Prepago.ligar("123", DateTime.utc_now(), 3) ==

@@ -30,11 +30,14 @@ defmodule Recarga do
     if creditos <= 0 do
       {:error, "Quantidade de créditos deve ser maior que 0"}
     else
-      with  %Assinante{} = assinante <- Assinante.buscar(numero, :pre_pago),
-            plano = assinante.plano,
-            plano_atualizado = %Prepago{plano | saldo: plano.saldo + creditos, recargas: [%__MODULE__{data: data, creditos: creditos} | plano.recargas]},
-            {:ok, _message} <- Assinante.atualizar(numero, %{plano: plano_atualizado}) do
-
+      with %Assinante{} = assinante <- Assinante.buscar(numero, :pre_pago),
+           plano = assinante.plano,
+           plano_atualizado = %Prepago{
+             plano
+             | saldo: plano.saldo + creditos,
+               recargas: [%__MODULE__{data: data, creditos: creditos} | plano.recargas]
+           },
+           {:ok, _message} <- Assinante.atualizar(numero, %{plano: plano_atualizado}) do
         {:ok, "(#{data}) Recarga de #{creditos} crédito(s) para #{numero}"}
       else
         {:error, message} ->

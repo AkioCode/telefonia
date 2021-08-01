@@ -11,6 +11,7 @@ defmodule Chamada do
     |> case do
       {:ok, _message} ->
         {:ok, "Número: #{assinante.numero} | Data/Hora: #{data} | Duração: #{duracao}"}
+
       {:error, message} ->
         {:error, message}
     end

@@ -194,11 +194,11 @@ defmodule Assinante do
         {:error, message}
 
       {%Assinante{} = assinante, indice} ->
-        List.update_at(assinantes(), indice, &(Map.merge(&1, conteudo)))
+        List.update_at(assinantes(), indice, &Map.merge(&1, conteudo))
         |> :erlang.term_to_binary()
         |> escrever(assinante.plano)
 
         {:ok, "Assinante atualizado com sucesso!"}
-      end
     end
+  end
 end
