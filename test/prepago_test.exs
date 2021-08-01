@@ -22,7 +22,7 @@ defmodule PrepagoTest do
     assert %Prepago{saldo: 10, recargas: []}.saldo == 10
   end
 
-  describe "ligação " do
+  describe "ligação" do
     test "com saldo suficiente", %{assinantes: assinantes} do
       assinante = Enum.at(assinantes, 0)
       assert Prepago.ligar(assinante.numero, DateTime.utc_now(), 3) ==
@@ -33,6 +33,11 @@ defmodule PrepagoTest do
       assinante = Enum.at(assinantes, 0)
       assert Prepago.ligar(assinante.numero, DateTime.utc_now(), 11) ==
                {:error, "Você não tem saldo suficiente, que pena! 😈"}
+    end
+
+    test "com número inexistente" do
+      assert Prepago.ligar("-1", DateTime.utc_now(), 11) ==
+               {:error, "Assinante não encontrado"}
     end
   end
 
@@ -47,8 +52,8 @@ defmodule PrepagoTest do
 
       assert assinante_1_extrato.numero == assinante_1.numero
       assert Enum.count(assinante_1_extrato.chamadas) == 1
-      assert Enum.count(assinante_1_extrato.recargas) == 1
-      assert assinante_1_extrato.creditos == 10
+      assert Enum.count(assinante_1_extrato.plano.recargas) == 1
+      assert assinante_1_extrato.plano.saldo == 10
 
       scd_data = DateTime.add(fst_data, 86_400 * days_in_month, :second)
       assinante_2 = Enum.at(assinantes, 1)
@@ -60,8 +65,8 @@ defmodule PrepagoTest do
 
       assert assinante_2_extrato.numero == assinante_2.numero
       assert Enum.count(assinante_2_extrato.chamadas) == 2
-      assert Enum.count(assinante_2_extrato.recargas) == 1
-      assert assinante_2_extrato.creditos == 20
+      assert Enum.count(assinante_2_extrato.plano.recargas) == 1
+      assert assinante_2_extrato.plano.saldo == 20
     end
   end
 end
