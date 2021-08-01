@@ -5,6 +5,27 @@ defmodule Prepago do
   defstruct saldo: 10, recargas: []
   @preco_minuto 1.45
 
+  @spec ligar(binary, binary, integer) :: {:error, binary} | {:ok, binary}
+  @doc """
+  Efetua ligação por assinatura pré-paga
+
+  ## Parâmetros
+
+  - numero (string): número da assinante.
+  - data (string): data da ligação.
+  - duracao (integer): duração da chamada.
+
+  ## Exemplos
+
+      iex> Prepago.ligar("123", "2021-04-04T13:21:21", 2)
+      {:ok, "Custo da chamada: 2.90. Saldo atual: 7.10"}
+
+      iex> Prepago.ligar("123", "2021-04-04T13:21:21", 40)
+      {:error, "Você não tem saldo suficiente, que pena! 😈"}
+
+      iex> Prepago.ligar("-1", "2021-04-04T13:21:21", 2)
+      {:error, "Assinante não encontrado"}
+  """
   def ligar(numero, data, duracao) do
     with %Assinante{} = assinante <- Assinante.buscar(numero, :pre_pago) do
       custo = calcular_custo(duracao)
@@ -28,6 +49,25 @@ defmodule Prepago do
 
   defp descontar(saldo, custo), do: saldo - custo
 
+  @spec gerar_extrato(binary, binary) ::
+          {:error, binary}
+          | {:ok, %Assinante{chamadas: list, cpf: binary, nome: binary, numero: binary, plano: %Prepago{}}}
+  @doc """
+  Gera extrato do mês de assinatura pré-paga
+
+  ## Parâmetros
+
+  - data (string): data da ligação.
+  - numero (string): número da assinante.
+
+  ## Exemplos
+
+      iex> Prepago.gerar_extrato("2021-04-04T13:21:21", "123")
+      {:ok, %Assinante{chamadas: [], cpf: "123", nome: "Nome", numero: "123", plano: %Prepago{creditos: 10, recargas: []}}}
+
+      iex> Prepago.gerar_extrato("2021-04-04T13:21:21", "-1")
+      {:error, "Assinante não encontrado"}
+  """
   def gerar_extrato(data, numero) do
     with %Assinante{} = assinante <- Assinante.buscar(numero, :pre_pago) do
       mes = data.month
