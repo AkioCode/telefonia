@@ -63,4 +63,14 @@ defmodule PospagoTest do
       assert Enum.count(assinante_2_extrato.chamadas) == 2
     end
   end
+
+  describe "pagar fatura" do
+    test "com parâmetros válidos" do
+      assert Pospago.pagar_fatura("123") == {:ok, "Fatura paga com sucesso"}
+    end
+
+    test "com número inexistente" do
+      assert Pospago.pagar_fatura("-1") == {:error, "Assinante não encontrado"}
+    end
+  end
 end

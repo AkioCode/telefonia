@@ -38,13 +38,21 @@ defmodule Pospago do
         |> Enum.sum()
         |> Kernel.*(@custo_minuto)
 
-      assinante_atualizado = %Assinante{assinante | plano: %Pospago{custo: custo}}
-
-      Assinante.atualizar(assinante.numero, assinante_atualizado)
+      assinante_atualizado = %Assinante{assinante | plano: %Pospago{custo: custo}, chamadas: chamadas_mes}
 
       {:ok, assinante_atualizado}
     end
   end
 
   defp filtrar_mes_ano(lista, mes, ano), do: Enum.filter(lista, &(&1.data.month == mes and &1.data.year == ano))
+
+  def pagar_fatura(numero) do
+    with %Assinante{} = assinante <- Assinante.buscar(numero, :pos_pago) do
+      assinante_atualizado = %Assinante{assinante | plano: %Pospago{custo: 0}}
+
+      Assinante.atualizar(assinante.numero, assinante_atualizado)
+
+      {:ok, "Fatura paga com sucesso"}
+    end
+  end
 end
